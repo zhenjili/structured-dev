@@ -12,7 +12,7 @@ A disciplined, verification-first approach to building complex software projects
 Check the project root for these files:
 
 1. **`feature_list.json` exists** → Continue Mode (skip to "Continue: 10-Step Workflow")
-2. **Neither file exists** → Initialize Mode (start with "Initialize: Project Setup")
+2. **Neither file exists** → Initialize Mode (read on)
 
 If `feature_list.json` exists but `claude-progress.txt` doesn't, create the progress file and enter Continue Mode.
 
@@ -20,7 +20,7 @@ If `feature_list.json` exists but `claude-progress.txt` doesn't, create the prog
 
 ## Initialize: Project Setup
 
-This mode runs once per project. Your goal: understand the project deeply, then generate a comprehensive feature list that will guide all future development.
+This mode runs once per project. First, understand the project, then determine the right initialization approach.
 
 ### Step 1: Understand the Project
 
@@ -33,9 +33,24 @@ Thoroughly explore the codebase:
 
 Identify the **project type** (Web App, API, Mobile, CLI, Library, Full-Stack). Read `references/project_type_guides.md` for type-specific guidance on categories and typical feature distribution.
 
-### Step 2: Determine Project Scale
+### Step 2: Determine Initialization Approach
 
-Assess the project's scope to calibrate feature granularity:
+Ask the user (or infer from context) which approach fits:
+
+| Approach | When to use | Feature list covers |
+|----------|-------------|-------------------|
+| **Greenfield** | Building a new project from scratch | Everything the project needs |
+| **Modification** | Adding features or making changes to an existing project | Only the changes + baseline checks |
+
+Most real-world usage is **Modification** — an existing project where the user wants to add, fix, or refactor specific things. Default to Modification if the project already has substantial code.
+
+---
+
+### Greenfield Initialization
+
+For new projects being built from scratch.
+
+#### Determine Project Scale
 
 | Scale | Feature Count | Signal |
 |-------|--------------|--------|
@@ -45,7 +60,7 @@ Assess the project's scope to calibrate feature granularity:
 
 When in doubt, start smaller. Features can be added later but shouldn't be removed.
 
-### Step 3: Generate feature_list.json
+#### Generate feature_list.json
 
 Read `references/feature_list_schema.md` for the complete schema. Key principles:
 
@@ -57,23 +72,103 @@ Read `references/feature_list_schema.md` for the complete schema. Key principles
 
 The `project` section must include `test_command` and `build_command` so future sessions know how to verify work.
 
-Write the file to the project root as `feature_list.json`.
+Skip to "Create Progress File" below.
 
-### Step 4: Create claude-progress.txt
+---
 
-Write the initial progress file:
+### Modification Initialization
+
+For existing projects where the user wants to add, fix, or refactor specific things. This is the most common scenario.
+
+The key insight: don't catalog all existing functionality. Only track what you're changing, plus a few baseline checks to catch regressions.
+
+#### Gather Requirements
+
+Ask the user what they want to accomplish. They might say:
+- "Add user authentication to this API"
+- "Refactor the database layer to use an ORM"
+- "Fix the search feature and add pagination"
+- "Add a settings page with dark mode support"
+
+If the user hasn't specified, ask: **"What changes do you want to make to this project?"**
+
+Explore the relevant parts of the codebase that will be affected by these changes. You don't need to understand the entire project — focus on the areas being modified and their immediate dependencies.
+
+#### Generate Focused feature_list.json
+
+Read `references/feature_list_schema.md` for the complete schema. The feature list for modifications has a specific structure:
+
+**Feature #1 is always a baseline check:**
+```json
+{
+  "id": 1,
+  "category": "testing",
+  "description": "Baseline: existing tests pass and project builds successfully",
+  "steps": [
+    "Run test suite: [test_command] — all existing tests pass",
+    "Run build: [build_command] — builds without errors"
+  ],
+  "depends_on": [],
+  "priority": "high",
+  "passes": false
+}
+```
+
+Run the baseline immediately during initialization. If it passes, mark it `true`. This establishes the regression safety net.
+
+**Remaining features cover only the requested changes.** Break the user's requirements into granular, testable features. Typically 5-20 features for a modification effort.
+
+Example — user says "add user authentication to this API":
+```json
+[
+  { "id": 1, "description": "Baseline: existing tests pass and project builds", "passes": true },
+  { "id": 2, "description": "User model with email, hashed password, and timestamps", "..." },
+  { "id": 3, "description": "POST /auth/register creates a new user account", "..." },
+  { "id": 4, "description": "POST /auth/login returns JWT token for valid credentials", "..." },
+  { "id": 5, "description": "Auth middleware rejects requests without valid token", "..." },
+  { "id": 6, "description": "Protected endpoints return 401 for unauthenticated requests", "..." },
+  { "id": 7, "description": "Unit tests cover all auth endpoints and edge cases", "..." }
+]
+```
+
+Notice: no features for existing endpoints, models, or functionality that isn't being changed. Keep it focused.
+
+#### Present to User for Confirmation
+
+Before writing `feature_list.json`, show the user your proposed feature list as a numbered summary:
+
+```
+I'll track these features for this modification:
+1. [Baseline] Existing tests pass and project builds ✓ (verified)
+2. User model with email, hashed password, and timestamps
+3. POST /auth/register creates a new user account
+4. ...
+
+Does this look right? Want to add, remove, or adjust anything?
+```
+
+After user confirms (or adjusts), write the file.
+
+---
+
+### Create Progress File
+
+Write `claude-progress.txt`:
 
 ```
 # Progress Notes - [Project Name]
 
 ## Session 1 - [Date]
 - Initialized structured development tracking
+- Mode: [Greenfield / Modification]
 - Generated feature_list.json with [N] features across [M] categories
-- Project type: [type], Scale: [scale]
+- Project type: [type]
+- Goal: [brief description of what we're building/changing]
 
 ### Current State
-- All features pending
-- Next: Start with feature #1 ([description])
+- Baseline verified: [yes/no]
+- Features pending: [count]
+- Next: Start with feature #[N] ([description])
 
 ### Environment
 - Test command: [command]
@@ -81,20 +176,21 @@ Write the initial progress file:
 - Key dependencies: [list]
 ```
 
-### Step 5: Initial Commit
+### Initial Commit
 
 Stage and commit both files:
 ```
 git add feature_list.json claude-progress.txt
 git commit -m "feat: initialize structured development tracking
 
+- Mode: [greenfield/modification]
 - Generated feature_list.json with N features
 - Created claude-progress.txt for session continuity"
 ```
 
-### Step 6: Begin Work
+### Begin Work
 
-Transition to Continue Mode and start implementing the first feature.
+Transition to Continue Mode and start implementing the first pending feature.
 
 ---
 
@@ -268,11 +364,7 @@ If the project has no test framework:
 
 ### Project Already Has Code
 
-This is fine and expected. The feature list should cover both:
-- Existing functionality (mark as `passes: true` after verifying)
-- New functionality to be built (mark as `passes: false`)
-
-Run verification on existing features during initialization.
+This is the default case — use Modification Initialization. Only track the changes you're making, not all existing functionality. Feature #1 (baseline check) serves as the regression safety net for everything that already works.
 
 ---
 
