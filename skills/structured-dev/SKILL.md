@@ -198,7 +198,7 @@ Transition to Continue Mode and start implementing the first pending feature.
 
 This is your core loop. Execute these steps in order for each feature you implement.
 
-### Step 1: Orient
+### Step 1: Orient and Detect Interruption
 
 Get your bearings in the project:
 ```bash
@@ -206,7 +206,50 @@ pwd
 ls -la
 git log --oneline -10
 git status
+git diff --stat
 ```
+
+**Check for interrupted work.** If `git status` shows uncommitted changes (modified/added/deleted files), a previous session or attempt was likely interrupted mid-implementation. This needs to be resolved before proceeding.
+
+**If the working tree is clean** — no interruption, proceed to Step 2.
+
+**If the working tree is dirty** — enter Recovery (see below).
+
+#### Recovery: Handling Interrupted Work
+
+Uncommitted changes mean the previous attempt was stopped before completing. The user may have interrupted because:
+- They didn't like the approach and want a different one
+- Claude was going in the wrong direction
+- They want to adjust requirements
+- It was an accidental interruption
+
+**Read the user's latest message carefully** — it likely explains what went wrong or what they want instead.
+
+Then assess the state of the uncommitted changes:
+1. Run `git diff --stat` to see what files were changed
+2. Run the test/build commands to check if the codebase is broken
+
+**Decision tree:**
+
+- **User gave corrective feedback** (e.g., "use SQL instead of ORM", "don't change that file"):
+  1. Revert the uncommitted changes: `git checkout -- .`
+  2. Acknowledge the feedback and explain how you'll approach differently
+  3. Proceed to Step 5 (Select Feature) with the user's guidance in mind
+
+- **User wants to skip this feature** (e.g., "skip this one", "move on"):
+  1. Revert: `git checkout -- .`
+  2. Note the skip in `claude-progress.txt`
+  3. Proceed to Step 5 with the next eligible feature
+
+- **Partial work looks good, user wants to continue** (e.g., "keep going", "continue"):
+  1. Keep the uncommitted changes
+  2. Proceed to Step 6 (Implement) to finish the current feature
+
+- **Unclear what the user wants**:
+  1. Show them the uncommitted changes summary
+  2. Ask: "I see uncommitted changes from a previous attempt. Should I revert them and start fresh, or keep them and continue?"
+
+After recovery, always verify the codebase is in a clean building/testing state before implementing new code.
 
 ### Step 2: Read Progress
 
@@ -238,6 +281,7 @@ This step is critical. Regressions caught early are cheap to fix. Never skip ver
 Choose the next feature to implement:
 - Pick the lowest-ID feature where `passes` is `false` and all `depends_on` features pass
 - If user has requested a specific feature, prioritize that (but warn if dependencies aren't met)
+- **If the user's message contains specific instructions** about how to implement, note them — they take priority over your own approach
 - Announce your choice: "Working on Feature #N: [description]"
 
 ### Step 6: Implement
