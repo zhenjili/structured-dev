@@ -11,7 +11,7 @@ A disciplined, verification-first approach to building complex software projects
 
 Check the project root for these files:
 
-1. **`feature_list.json` exists** → Continue Mode (skip to "Continue: 10-Step Workflow")
+1. **`feature_list.json` exists** → Continue Mode (skip to "Continue: 11-Step Workflow")
 2. **Neither file exists** → Initialize Mode (read on)
 
 If `feature_list.json` exists but `claude-progress.txt` doesn't, create the progress file and enter Continue Mode.
@@ -194,7 +194,7 @@ Transition to Continue Mode and start implementing the first pending feature.
 
 ---
 
-## Continue: 10-Step Workflow
+## Continue: 11-Step Workflow
 
 This is your core loop. Execute these steps in order for each feature you implement.
 
@@ -260,10 +260,10 @@ Classify the user's intent:
 | Intent | Signal | Action |
 |--------|--------|--------|
 | **Add new feature** | "add dark mode", "I also need pagination" | → Go to Step 2a: Add Features |
-| **Modify approach** | "use Redis instead", "don't touch that file" | → Note the constraint, proceed to Step 5 |
+| **Modify approach** | "use Redis instead", "don't touch that file" | → Note the constraint, proceed to Step 6 (Select Feature) |
 | **Continue working** | "continue", "keep going", "next" | → Proceed to Step 3 normally |
-| **Fix/redo something** | "that's broken", "redo feature #3" | → Identify the issue, proceed to Step 5 targeting that feature |
-| **Skip a feature** | "skip #4", "that's not needed" | → Note skip in progress, proceed to Step 5 |
+| **Fix/redo something** | "that's broken", "redo feature #3" | → Identify the issue, proceed to Step 6 targeting that feature |
+| **Skip a feature** | "skip #4", "that's not needed" | → Note skip in progress, proceed to Step 6 |
 | **Status check** | "what's the progress?", "where are we?" | → Report status from feature list + progress file, then ask what to do next |
 | **Just invoked /structured-dev** | No specific request | → Proceed to Step 3 normally |
 
@@ -289,7 +289,7 @@ When the user requests functionality not in the feature list:
    git add feature_list.json
    git commit -m "feat: add features #X-#Y to tracking list"
    ```
-5. Proceed to Step 3 — the new features will be picked up naturally by Step 5
+5. Proceed to Step 3 — the new features will be picked up naturally by Step 6
 
 ### Step 3: Read Progress
 
