@@ -18,6 +18,21 @@ When you invoke `/structured-dev`, Claude adopts a disciplined development workf
 - **Git discipline**: Commit after each completed feature with descriptive messages
 - **Single feature focus**: One feature at a time, done right
 
+## Installation
+
+In a Claude Code session, run:
+
+```
+/plugin marketplace add zhenjili/claude-plugins-marketplace
+/plugin install structured-dev@zhenjili-marketplace
+```
+
+Or use the interactive plugin manager:
+```
+/plugin
+```
+Then go to **Marketplaces** → add `zhenjili/claude-plugins-marketplace`, then **Discover** → install `structured-dev`.
+
 ## Inspired by
 
 - [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/long-running-agents) by Anthropic
