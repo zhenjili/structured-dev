@@ -234,16 +234,16 @@ Then assess the state of the uncommitted changes:
 - **User gave corrective feedback** (e.g., "use SQL instead of ORM", "don't change that file"):
   1. Revert the uncommitted changes: `git checkout -- .`
   2. Acknowledge the feedback and explain how you'll approach differently
-  3. Proceed to Step 5 (Select Feature) with the user's guidance in mind
+  3. Proceed to Step 6 (Select Feature) with the user's guidance in mind
 
 - **User wants to skip this feature** (e.g., "skip this one", "move on"):
   1. Revert: `git checkout -- .`
   2. Note the skip in `claude-progress.txt`
-  3. Proceed to Step 5 with the next eligible feature
+  3. Proceed to Step 6 with the next eligible feature
 
 - **Partial work looks good, user wants to continue** (e.g., "keep going", "continue"):
   1. Keep the uncommitted changes
-  2. Proceed to Step 6 (Implement) to finish the current feature
+  2. Proceed to Step 7 (Implement) to finish the current feature
 
 - **Unclear what the user wants**:
   1. Show them the uncommitted changes summary
@@ -251,7 +251,47 @@ Then assess the state of the uncommitted changes:
 
 After recovery, always verify the codebase is in a clean building/testing state before implementing new code.
 
-### Step 2: Read Progress
+### Step 2: Understand User Intent
+
+**This step is critical.** Every time you enter Continue Mode, the user has sent a message. Read it carefully before doing anything mechanical. The user's message determines what you do next.
+
+Classify the user's intent:
+
+| Intent | Signal | Action |
+|--------|--------|--------|
+| **Add new feature** | "add dark mode", "I also need pagination" | → Go to Step 2a: Add Features |
+| **Modify approach** | "use Redis instead", "don't touch that file" | → Note the constraint, proceed to Step 5 |
+| **Continue working** | "continue", "keep going", "next" | → Proceed to Step 3 normally |
+| **Fix/redo something** | "that's broken", "redo feature #3" | → Identify the issue, proceed to Step 5 targeting that feature |
+| **Skip a feature** | "skip #4", "that's not needed" | → Note skip in progress, proceed to Step 5 |
+| **Status check** | "what's the progress?", "where are we?" | → Report status from feature list + progress file, then ask what to do next |
+| **Just invoked /structured-dev** | No specific request | → Proceed to Step 3 normally |
+
+#### Step 2a: Add New Features
+
+When the user requests functionality not in the feature list:
+
+1. Break their request into granular, testable features
+2. Present the proposed features for confirmation:
+   ```
+   I'll add these features to the tracking list:
+   #[next_id]. [description]
+   #[next_id+1]. [description]
+   ...
+   Look good?
+   ```
+3. After confirmation, add to `feature_list.json`:
+   - Use next sequential IDs
+   - Set appropriate category, steps, depends_on
+   - Update `metadata.total_features`
+4. Commit the updated feature list:
+   ```
+   git add feature_list.json
+   git commit -m "feat: add features #X-#Y to tracking list"
+   ```
+5. Proceed to Step 3 — the new features will be picked up naturally by Step 5
+
+### Step 3: Read Progress
 
 Read `claude-progress.txt` to understand:
 - What was accomplished in previous sessions
@@ -259,14 +299,14 @@ Read `claude-progress.txt` to understand:
 - Any noted blockers or decisions
 - Environment setup needed (servers, databases, etc.)
 
-### Step 3: Read Feature List
+### Step 4: Read Feature List
 
 Read `feature_list.json` and assess current state:
 - Count completed (`passes: true`) vs remaining features
 - Identify the next eligible feature (all `depends_on` satisfied)
 - Note the test/build commands from the `project` section
 
-### Step 4: Verify Existing Work
+### Step 5: Verify Existing Work
 
 Before touching anything new, confirm existing work still passes:
 
@@ -276,15 +316,16 @@ Before touching anything new, confirm existing work still passes:
 
 This step is critical. Regressions caught early are cheap to fix. Never skip verification.
 
-### Step 5: Select One Feature
+### Step 6: Select One Feature
 
 Choose the next feature to implement:
-- Pick the lowest-ID feature where `passes` is `false` and all `depends_on` features pass
-- If user has requested a specific feature, prioritize that (but warn if dependencies aren't met)
-- **If the user's message contains specific instructions** about how to implement, note them — they take priority over your own approach
+- If the user requested a specific feature in Step 2, implement that one
+- If the user asked to redo a feature, select that feature (its `passes` should still be `false`, or the issue is a regression — fix it)
+- Otherwise, pick the lowest-ID feature where `passes` is `false` and all `depends_on` features pass
+- **If the user gave implementation guidance** (e.g., "use SQLite not Postgres"), note it — their instructions take priority over your default approach
 - Announce your choice: "Working on Feature #N: [description]"
 
-### Step 6: Implement
+### Step 7: Implement
 
 Write the code for this single feature:
 - Follow existing code patterns and conventions
@@ -292,14 +333,14 @@ Write the code for this single feature:
 - Write tests alongside implementation if the project has a test framework
 - If the feature is more complex than expected, implement a minimal working version first
 
-### Step 7: Verify
+### Step 8: Verify
 
 Run the feature's verification steps from the `steps` array:
 - Execute each step and confirm expected behavior
 - Run the full test suite to check for regressions
 - If verification fails, debug and fix before proceeding
 
-### Step 8: Update Feature List
+### Step 9: Update Feature List
 
 Update `feature_list.json`:
 - Set `passes: true` for the completed feature
@@ -307,7 +348,7 @@ Update `feature_list.json`:
 - Update `metadata.last_updated` timestamp
 - **Never modify any other field** - descriptions, steps, and IDs are immutable
 
-### Step 9: Commit
+### Step 10: Commit
 
 Create a focused git commit:
 ```
@@ -319,7 +360,7 @@ git commit -m "feat: implement feature #N - [short description]
 
 Use conventional commit prefixes: `feat:`, `fix:`, `test:`, `refactor:`, `docs:`
 
-### Step 10: Update Progress
+### Step 11: Update Progress
 
 Append to `claude-progress.txt`:
 ```
@@ -340,7 +381,7 @@ git commit -m "docs: update progress after completing feature #N"
 
 After completing a feature:
 - If context window is getting full (you feel the conversation is very long), proceed to Session End
-- If user wants to continue, go back to Step 5 with the next feature
+- If user wants to continue, go back to Step 6 with the next feature
 - If all features pass, celebrate and proceed to Session End
 
 ---
@@ -385,19 +426,12 @@ If a feature turns out to be significantly more complex than anticipated:
 3. Note in progress what was simplified and what could be enhanced
 4. Suggest the user add new features for the enhanced version
 
-### User Wants to Add Features
-
-When the user requests functionality not in the feature list:
-1. Add new features at the end of the list (next available ID)
-2. Use appropriate category and include verification steps
-3. Set appropriate `depends_on` if they depend on existing features
-4. Update `metadata.total_features`
-5. Commit the updated feature list
-
 ### User Wants to Skip or Reorder
 
+These are handled in Step 2 (Understand User Intent), but for clarity:
 - **Skip**: Leave the feature as `passes: false`, move to the next eligible one. Note the skip in progress.
 - **Reorder**: Pick the requested feature if its dependencies are met. If not, explain which dependencies need to be completed first.
+- **Add new features**: Handled in Step 2a — break into granular features, confirm with user, add to list, commit.
 
 ### Tests Don't Exist Yet
 
