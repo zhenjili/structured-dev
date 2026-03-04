@@ -78,45 +78,19 @@ Skip to "Create Progress File" below.
 
 ### Modification Initialization
 
-For existing projects where the user wants to add, fix, or refactor specific things. This is the most common scenario.
-
-The key insight: don't catalog all existing functionality. Only track what you're changing, plus a few baseline checks to catch regressions.
+Don't catalog all existing functionality. Only track what you're changing, plus a baseline check to catch regressions.
 
 #### Gather Requirements
 
-Ask the user what they want to accomplish. They might say:
-- "Add user authentication to this API"
-- "Refactor the database layer to use an ORM"
-- "Fix the search feature and add pagination"
-- "Add a settings page with dark mode support"
+Ask the user what they want to accomplish. If they haven't specified, ask: **"What changes do you want to make to this project?"**
 
-If the user hasn't specified, ask: **"What changes do you want to make to this project?"**
-
-Explore the relevant parts of the codebase that will be affected by these changes. You don't need to understand the entire project — focus on the areas being modified and their immediate dependencies.
+Explore the relevant parts of the codebase that will be affected. Focus on the areas being modified and their immediate dependencies.
 
 #### Generate Focused feature_list.json
 
-Read `references/feature_list_schema.md` for the complete schema. The feature list for modifications has a specific structure:
+Read `references/feature_list_schema.md` for the complete schema.
 
-**Feature #1 is always a baseline check:**
-```json
-{
-  "id": 1,
-  "category": "testing",
-  "description": "Baseline: existing tests pass and project builds successfully",
-  "steps": [
-    "Run test suite: [test_command] — all existing tests pass",
-    "Run build: [build_command] — builds without errors"
-  ],
-  "depends_on": [],
-  "priority": "high",
-  "passes": false
-}
-```
-
-Run the baseline immediately during initialization. If it passes, mark it `true`. This establishes the regression safety net.
-
-**Remaining features cover only the requested changes.** Break the user's requirements into granular, testable features. Typically 5-20 features for a modification effort.
+Feature #1 is always a baseline check (existing tests pass, project builds). Run it immediately — if it passes, mark `true`. Remaining features cover only the requested changes, typically 5-20 features.
 
 Example — user says "add user authentication to this API":
 ```json
@@ -217,17 +191,7 @@ git diff --stat
 
 #### Recovery: Handling Interrupted Work
 
-Uncommitted changes mean the previous attempt was stopped before completing. The user may have interrupted because:
-- They didn't like the approach and want a different one
-- The agent was going in the wrong direction
-- They want to adjust requirements
-- It was an accidental interruption
-
-**Read the user's latest message carefully** — it likely explains what went wrong or what they want instead.
-
-Then assess the state of the uncommitted changes:
-1. Run `git diff --stat` to see what files were changed
-2. Run the test/build commands to check if the codebase is broken
+**Read the user's latest message** — it likely explains what they want instead.
 
 **Decision tree:**
 
@@ -246,16 +210,14 @@ Then assess the state of the uncommitted changes:
   2. Proceed to Step 7 (Implement) to finish the current feature
 
 - **Unclear what the user wants**:
-  1. Show them the uncommitted changes summary
-  2. Ask: "I see uncommitted changes from a previous attempt. Should I revert them and start fresh, or keep them and continue?"
-
-After recovery, always verify the codebase is in a clean building/testing state before implementing new code.
+  1. Show the uncommitted changes summary
+  2. Ask: revert and start fresh, or keep and continue?
 
 ### Step 2: Understand User Intent
 
-**This step is critical.** Every time you enter Continue Mode, the user has sent a message. Read it carefully before doing anything mechanical. The user's message determines what you do next.
+Read the user's message — it determines what you do next.
 
-Classify the user's intent:
+Classify intent:
 
 | Intent | Signal | Action |
 |--------|--------|--------|
@@ -443,13 +405,6 @@ If a feature turns out to be significantly more complex than anticipated:
 3. Note in progress what was simplified and what could be enhanced
 4. Suggest the user add new features for the enhanced version
 
-### User Wants to Skip or Reorder
-
-These are handled in Step 2 (Understand User Intent), but for clarity:
-- **Skip**: Leave the feature as `passes: false`, move to the next eligible one. Note the skip in progress.
-- **Reorder**: Pick the requested feature if its dependencies are met. If not, explain which dependencies need to be completed first.
-- **Add new features**: Handled in Step 2a — break into granular features, confirm with user, add to list, commit.
-
 ### Tests Don't Exist Yet
 
 If the project has no test framework:
@@ -469,7 +424,7 @@ These aren't arbitrary rules - they exist because long-running development acros
 
 **Why immutable features?** Changing descriptions mid-project creates confusion about what was actually verified. If requirements change, add new features instead.
 
-**Why one feature at a time?** Context switches between half-done features lead to bugs and broken state. Finishing one thing completely before starting the next keeps the codebase always-working.
+**Why focus on few features at a time?** Context switches between half-done features lead to bugs and broken state. Finishing before starting the next keeps the codebase always-working.
 
 **Why verify before implementing?** Regressions compound. If you build feature #5 on top of a broken feature #3, you'll waste time debugging the wrong thing.
 
