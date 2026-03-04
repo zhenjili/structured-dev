@@ -362,13 +362,16 @@ Use conventional commit prefixes: `feat:`, `fix:`, `test:`, `refactor:`, `docs:`
 
 ### Step 11: Update Progress
 
+Without this step, the next session starts blind. Progress notes are the only bridge between sessions — 30 seconds of writing saves minutes of re-discovery.
+
 Append to `claude-progress.txt`:
 ```
 ### Feature #N: [description]
 - Status: COMPLETE
-- Implementation: [brief summary]
-- Verification: [how it was tested]
-- Files changed: [key files]
+- Implementation: [brief summary of what was built and key decisions made]
+- Verification: [how it was tested, what commands were run]
+- Files changed: [key files that were added or modified]
+- Notes: [anything the next session should know — gotchas, trade-offs, related work]
 ```
 
 Then commit the progress update:
@@ -458,4 +461,4 @@ These aren't arbitrary rules - they exist because long-running development acros
 
 **Why commit after every feature?** Small, focused commits make it easy to bisect problems and revert cleanly. A giant commit with 5 features is useless when one of them breaks.
 
-**Why progress notes?** You won't remember what happened 3 sessions ago. Neither will the next Claude instance. Written context is the bridge between sessions.
+**Why progress notes?** You won't remember what happened 3 sessions ago. Neither will the next Claude instance. Written context is the only bridge between sessions — without it, the next session wastes time re-discovering what you already figured out.
