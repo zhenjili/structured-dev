@@ -1,6 +1,6 @@
 ---
 name: structured-dev
-description: Systematic feature-driven development for complex coding projects. Maintains feature_list.json for tracking and claude-progress.txt for session continuity. Use this skill when the user invokes /structured-dev, when you detect feature_list.json in the project root, or when the user asks for structured/systematic development of a multi-feature project. Also trigger when users mention feature tracking, incremental development, long-running projects, or multi-session coding tasks.
+description: Systematic feature-driven development for complex coding projects. Maintains feature_list.json for tracking and progress.txt for session continuity. Use this skill when the user invokes /structured-dev, when you detect feature_list.json in the project root, or when the user asks for structured/systematic development of a multi-feature project. Also trigger when users mention feature tracking, incremental development, long-running projects, or multi-session coding tasks.
 ---
 
 # Structured Development
@@ -14,7 +14,7 @@ Check the project root for these files:
 1. **`feature_list.json` exists** → Continue Mode (skip to "Continue: 11-Step Workflow")
 2. **Neither file exists** → Initialize Mode (read on)
 
-If `feature_list.json` exists but `claude-progress.txt` doesn't, create the progress file and enter Continue Mode.
+If `feature_list.json` exists but `progress.txt` doesn't, create the progress file and enter Continue Mode.
 
 ---
 
@@ -153,7 +153,7 @@ After user confirms (or adjusts), write the file.
 
 ### Create Progress File
 
-Write `claude-progress.txt`:
+Write `progress.txt`:
 
 ```
 # Progress Notes - [Project Name]
@@ -180,12 +180,12 @@ Write `claude-progress.txt`:
 
 Stage and commit both files:
 ```
-git add feature_list.json claude-progress.txt
+git add feature_list.json progress.txt
 git commit -m "feat: initialize structured development tracking
 
 - Mode: [greenfield/modification]
 - Generated feature_list.json with N features
-- Created claude-progress.txt for session continuity"
+- Created progress.txt for session continuity"
 ```
 
 ### Begin Work
@@ -219,7 +219,7 @@ git diff --stat
 
 Uncommitted changes mean the previous attempt was stopped before completing. The user may have interrupted because:
 - They didn't like the approach and want a different one
-- Claude was going in the wrong direction
+- The agent was going in the wrong direction
 - They want to adjust requirements
 - It was an accidental interruption
 
@@ -238,7 +238,7 @@ Then assess the state of the uncommitted changes:
 
 - **User wants to skip this feature** (e.g., "skip this one", "move on"):
   1. Revert: `git checkout -- .`
-  2. Note the skip in `claude-progress.txt`
+  2. Note the skip in `progress.txt`
   3. Proceed to Step 6 with the next eligible feature
 
 - **Partial work looks good, user wants to continue** (e.g., "keep going", "continue"):
@@ -293,7 +293,7 @@ When the user requests functionality not in the feature list:
 
 ### Step 3: Read Progress
 
-Read `claude-progress.txt` to understand:
+Read `progress.txt` to understand:
 - What was accomplished in previous sessions
 - What feature was being worked on or is next
 - Any noted blockers or decisions
@@ -364,7 +364,7 @@ Use conventional commit prefixes: `feat:`, `fix:`, `test:`, `refactor:`, `docs:`
 
 Without this step, the next session starts blind. Progress notes are the only bridge between sessions — 30 seconds of writing saves minutes of re-discovery.
 
-Append to `claude-progress.txt`:
+Append to `progress.txt`:
 ```
 ### Feature #N: [description]
 - Status: COMPLETE
@@ -376,7 +376,7 @@ Append to `claude-progress.txt`:
 
 Then commit the progress update:
 ```
-git add feature_list.json claude-progress.txt
+git add feature_list.json progress.txt
 git commit -m "docs: update progress after completing feature #N"
 ```
 
@@ -395,7 +395,7 @@ Before ending any session, always:
 
 1. **Verify clean state**: Run tests, confirm no regressions
 2. **Commit all work**: No uncommitted changes should remain
-3. **Update progress**: Write a session summary to `claude-progress.txt`:
+3. **Update progress**: Write a session summary to `progress.txt`:
 
 ```
 ## Session Summary
@@ -406,7 +406,7 @@ Before ending any session, always:
 - Known issues or blockers: [any]
 ```
 
-4. **Commit progress**: `git add claude-progress.txt && git commit -m "docs: end of session progress update"`
+4. **Commit progress**: `git add progress.txt && git commit -m "docs: end of session progress update"`
 5. **Never leave broken state**: If a feature is half-done and failing, either finish it or revert
 
 ---
@@ -461,4 +461,4 @@ These aren't arbitrary rules - they exist because long-running development acros
 
 **Why commit after every feature?** Small, focused commits make it easy to bisect problems and revert cleanly. A giant commit with 5 features is useless when one of them breaks.
 
-**Why progress notes?** You won't remember what happened 3 sessions ago. Neither will the next Claude instance. Written context is the only bridge between sessions — without it, the next session wastes time re-discovering what you already figured out.
+**Why progress notes?** You won't remember what happened 3 sessions ago. Neither will the next agent instance. Written context is the only bridge between sessions — without it, the next session wastes time re-discovering what you already figured out.

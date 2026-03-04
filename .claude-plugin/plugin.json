@@ -1,6 +1,6 @@
 {
   "name": "structured-dev",
-  "description": "Systematic feature-driven development for complex projects. Tracks progress via feature_list.json and claude-progress.txt across sessions. Use when tackling multi-feature projects, long-running development tasks, or when you need structured incremental progress with verification.",
+  "description": "Systematic feature-driven development for complex projects. Tracks progress via feature_list.json and progress.txt across sessions. Use when tackling multi-feature projects, long-running development tasks, or when you need structured incremental progress with verification.",
   "author": {
     "name": "Jie Xu"
   },
