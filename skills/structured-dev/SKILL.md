@@ -316,18 +316,32 @@ Before touching anything new, confirm existing work still passes:
 
 This step is critical. Regressions caught early are cheap to fix. Never skip verification.
 
-### Step 6: Select One Feature
+### Step 6: Select Feature(s)
 
-Choose the next feature to implement:
-- If the user requested a specific feature in Step 2, implement that one
-- If the user asked to redo a feature, select that feature (its `passes` should still be `false`, or the issue is a regression — fix it)
-- Otherwise, pick the lowest-ID feature where `passes` is `false` and all `depends_on` features pass
-- **If the user gave implementation guidance** (e.g., "use SQLite not Postgres"), note it — their instructions take priority over your default approach
-- Announce your choice: "Working on Feature #N: [description]"
+Identify all **eligible features** — those where `passes` is `false` and all `depends_on` features pass.
+
+**If the user requested a specific feature** in Step 2, prioritize that one. If they asked to redo a feature, target that one.
+
+**If the user gave implementation guidance** (e.g., "use SQLite not Postgres"), note it — their instructions take priority.
+
+Choose from eligible features freely — you don't have to follow ID order. Pick what makes the most sense given context, dependencies, and user intent.
+
+#### Serial vs Parallel
+
+By default, work on **one feature at a time** — it keeps verification clean and git history readable.
+
+But when multiple eligible features are independent (no shared files, no overlapping concerns), you can implement them in parallel using subagents. This is a judgment call based on:
+- Do the features touch different parts of the codebase?
+- Can each be verified independently?
+- Is the speedup worth the coordination overhead?
+
+When parallelizing, each subagent should complete a full cycle (implement → verify → update feature list) for its feature. Coordinate commits to avoid conflicts.
+
+Announce your choice: "Working on Feature #N: [description]" (or "Working on Features #N and #M in parallel").
 
 ### Step 7: Implement
 
-Write the code for this single feature:
+Write the code for the selected feature:
 - Follow existing code patterns and conventions
 - Keep changes focused - don't refactor unrelated code
 - Write tests alongside implementation if the project has a test framework
